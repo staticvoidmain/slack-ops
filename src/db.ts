@@ -1,11 +1,5 @@
 import { join } from "path";
 
-/**
-* #Db wrapper for Sqlite3
-*
-*
-*/
-
 export let _db: any;
 
 /**
@@ -17,17 +11,24 @@ export function init(done) {
 
   _db = new sqlite.cached.Database(join(process.cwd(), "botdb"));
 
-  // if (process.env.DEBUG) {
-  //   _db.on('trace', function (query) {
-  //     console.log(`BEGIN ${query}`);
-  //   });
-  // }
+  if (process.env.DEBUG) {
+    _db.on("trace", function (query) {
+      console.log(`BEGIN ${query}`);
+    });
+  }
 
   // TODO: migrations should be handled by some other means. Tables are not dropped explicitly, and so,
   // just changing this code does not ensure that the db is updated correctly.
   _db.serialize(function() {
 
-    _db.run("create table if not exists User (user_id text unique, team_id integer, name text, karma real, is_bot boolean )");
+    _db.run("create table if not exists User ("
+    + " user_id text unique,"
+    + " team_id integer,"
+    + " name text,"
+    + " karma real,"
+    + " is_bot boolean"
+    + ")");
+
     _db.run("create table if not exists Team (team_id integer primary key, owner text, name text unique )");
 
     _db.run("create table if not exists GlobalSetting (key text unique, value text )");
@@ -66,14 +67,17 @@ export function adjustKarma(userId, delta, done) {
 
 export function loadUsers(users, done) {
 
-  const cmd = "insert or ignore into User (user_id, team_id, name, karma, is_bot) values ($userId, 0, $userName, 100.00, $isBot)";
+  const cmd = "insert or ignore into User ("
+  + "  user_id, team_id, name, karma, is_bot"
+  + ") "
+  + "values ($userId, 0, $userName, 100.00, $isBot)";
 
   _db.serialize(function() {
     const statement = _db.prepare(cmd);
     const keys = Object.keys(users);
 
-    for (let i = 0; i < keys.length; i++) {
-      const user = users[keys[i]];
+    for (const key of keys) {
+      const user = users[key];
 
       statement.run({
         $userId: user.id,
@@ -105,8 +109,8 @@ export function getSettingValues(settings, userId, done) {
       if (settings.hasOwnProperty(prop)) {
 
         const resolver = (function() {
-          return function resolve(err, result) {
-            if (err) { done(err); }
+          return function resolve(selectError, result) {
+            if (selectError) { done(selectError); }
 
             if (result) {
               settings[prop] = result.value;
@@ -170,11 +174,12 @@ export function setGlobalSetting(key, value, done) {
   done("TODO");
 }
 
-/**
+/*
 * # Creates a new team, assigns the user as the first memeber and the owner.
 * @param {String} name team name
 * @param {String} owner chat-id of the owner
-* @param {Function} done callback on complete */
+* @param {Function} done callback on complete
+*/
 export function createTeam(name, owner, done) {
   _db.serialize(function() {
     _db.run("insert or ignore into Team (name, owner) values ($name, $ownerId)", {
@@ -195,11 +200,6 @@ export function createTeam(name, owner, done) {
   });
 }
 
-/**
-* ## Retrieves team settings values previously set.
-* @param {String} userId chat-id of the team member.
-* @param {String} key the key to query
-* @param {Function} callback on complete  */
 export function getTeamSetting(userId, key, done) {
   getTeamForUser(userId, function(err, teamInfo) {
     if (err) {
@@ -221,12 +221,6 @@ export function getTeamSetting(userId, key, done) {
   });
 }
 
-/**
-* ## Allows team administrators to add or update shared keys for their teams.
-* @param {String} userId chat-id of the user (error if not team admin)
-* @param {String} key the key to set
-* @param {String} value the value to add or update
-* @param {Function} callback on complete  */
 export function setTeamSetting(userId, key, value, done) {
   console.log(` db.js setTeamSetting( ${userId}, ${key}, ${value} )`);
 
@@ -244,15 +238,16 @@ export function setTeamSetting(userId, key, value, done) {
     }
 
     const teamId = teamInfo.team_id;
+    const teamQuery = "select key, value from TeamSetting where team_id = ? and key = ?";
 
-    _db.get("select key, value from TeamSetting where team_id = ? and key = ?", [teamId, key], function(err, setting) {
-      if (err) {
-        done(err);
+    _db.get(teamQuery, [teamId, key], function(selectErr, setting) {
+      if (selectErr) {
+        done(selectErr);
       } else {
         if (setting) {
           const previous = setting.value;
           _db.run("update TeamSetting set value = ? where team_id = ? and key = ?", [value, teamId, key], function() {
-            done(err, previous);
+            done(selectErr, previous);
           });
         } else {
           _db.run("insert into TeamSetting (team_id, key, value) values (?, ?, ?)", [teamId, key, value], done);
@@ -262,12 +257,6 @@ export function setTeamSetting(userId, key, value, done) {
   });
 }
 
-/**
-* ## Retrieves a user setting stored previously.
-* @param {String} userId chat-id of the user
-* @param {String} key the key to set
-* @param {Function} callback on complete
-*/
 export function getUserSetting(userId, key, done) {
   const query = "select key, value from UserSetting where user_id = ?";
 
@@ -284,13 +273,6 @@ export function getUserSetting(userId, key, done) {
   }
 }
 
-/**
-* ## Assigns the property a new value and returns the old value (if update).
-* @param {String} userId chat-id of the user
-* @param {String} key the key to set
-* @param {String} value the value to add or update
-* @param {Function} callback on complete
-*/
 export function setUserSetting(userId, key, value, done) {
   const query = "select value from UserSetting where user_id = ? and key = ? limit 1";
 
@@ -311,9 +293,6 @@ export function setUserSetting(userId, key, value, done) {
   });
 }
 
-/*
-* ## testing infrastructure.
-*/
 export function close() {
   if (_db) {
     _db.close();

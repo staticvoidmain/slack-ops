@@ -5,11 +5,11 @@ import { Bot } from "./bot-base";
 
 function readJson(res: IncomingMessage, callback, fail) {
   const data: Buffer[] = [];
-  res.on("data", function(chunk) {
+  res.on("data", function (chunk) {
     data.push(chunk);
   });
 
-  res.on("end", function() {
+  res.on("end", function () {
     try {
       const buffer = Buffer.concat(data);
 
@@ -33,12 +33,12 @@ module.exports = new Bot("duck-bot", [{
     const query = m[1];
     result.messages.push("let me see what I can find about " + query + "...");
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
       // todo: error handling
-      get("http://api.duckduckgo.com/?q=" + escape(query) + options, function(res) {
+      get("http://api.duckduckgo.com/?q=" + escape(query) + options, function (res) {
 
-        readJson(res, function(response) {
+        readJson(res, function (response) {
           const simple = response.Answer || response.Abstract || response.AbstractText || response.Definition;
 
           if (simple) {

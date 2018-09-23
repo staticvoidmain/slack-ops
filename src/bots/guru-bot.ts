@@ -13,13 +13,13 @@ module.exports = new Bot("guru-bot", [{
       return Promise.reject("I'm afraid I don't know this person...");
     }
 
-    return new Promise(function(resolve, reject) {
-      adjustKarma(userId, -5, function(err) {
+    return new Promise(function (resolve, reject) {
+      adjustKarma(userId, -5, function (err) {
         if (err) {
           reject(err);
         } else {
 
-          adjustKarma(context.user, -5, function(err) {
+          adjustKarma(context.user, -5, function (err) {
 
             if (err) {
               reject(err);
@@ -47,8 +47,8 @@ module.exports = new Bot("guru-bot", [{
       return Promise.reject("I'm afraid I don't know this person...");
     }
 
-    return new Promise(function(resolve, reject) {
-      adjustKarma(user.id, +5, function(err) {
+    return new Promise(function (resolve, reject) {
+      adjustKarma(user.id, +5, function (err) {
         if (err) {
           reject(err);
         }
@@ -57,7 +57,7 @@ module.exports = new Bot("guru-bot", [{
         context.messages.push(`${userName}'s karma has improved.`);
 
         if (!user.isBot) {
-          adjustKarma(context.user, +1, function(err) {
+          adjustKarma(context.user, +1, function (err) {
 
             if (err) {
               reject(err);
@@ -77,7 +77,7 @@ module.exports = new Bot("guru-bot", [{
   name: "guru-bot.enlighten",
   pattern: /^enlighten me$/i,
   handler(match, context) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       context.messages.push(`*Dharma of Code*:
 
   - _doing_ work is more important than _talking about work_.

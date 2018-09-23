@@ -12,10 +12,10 @@ module.exports = new Bot("issue-bot", [{
     const title = parts[0];
     const body = parts[1];
 
-    return expandVariables(["my.project"], context).then(function(expanded) {
+    return expandVariables(["my.project"], context).then(function (expanded) {
       const issues = getService("issues");
 
-      return issues.create(expanded[0], title, body).then(function(list) {
+      return issues.create(expanded[0], title, body).then(function (list) {
 
         for (const issue of list) {
           context.messages.push(`<${issue.url}|${issue.title}>`);
@@ -34,13 +34,12 @@ module.exports = new Bot("issue-bot", [{
   ],
   handler(match, context) {
 
-    return expandVariables([match[1]], context).then(function(expanded) {
+    return expandVariables([match[1]], context).then(function (expanded) {
       const issues = getService("issues");
 
-      return issues.list(expanded[0]).then(function(list) {
+      return issues.list(expanded[0]).then(function (list) {
 
-        for (let i = 0; i < list.length; i++) {
-          const issue = list[i];
+        for (const issue of list) {
           context.messages.push(`ISSUE: <${issue.url}|${issue.title}>`);
         }
 
