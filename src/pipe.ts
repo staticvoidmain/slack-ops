@@ -43,7 +43,6 @@ export class Pipe {
   // we start with a fulfilled promise.
   private current = Promise.resolve();
   private resolve: any = undefined;
-  private boundNext: () => Promise<void>;
 
   constructor(user: string, channel: string, line: string, provider?: ChatProvider) {
 
@@ -79,7 +78,6 @@ export class Pipe {
     }
 
     this.work = this.commands.length;
-    this.boundNext = this.next.bind(this);
   }
 
   public replyTo(reply) {
@@ -98,8 +96,11 @@ export class Pipe {
   public exec() {
     if (this.commands.length) {
       this.current
-        .then(this.next)
-        .catch(this.fail);
+        .then(this.next.bind(this))
+        .catch((error) => {
+          console.log("PIPE_ERROR: ", error);
+          this.reply("ERROR: " + error);
+        });
     }
 
     return new Promise((resolve) => {
@@ -118,25 +119,10 @@ export class Pipe {
     const command = this.commands.shift();
 
     if (command) {
-      this.current = command()
-        .then(this.boundNext);
-
-      // what was the defer stuff?
-    } else {
-      this.current.then(() => {
-        // flag the pipe as complete.
-        this.flush();
-        this.resolve();
-      });
+      return command().then(this.next.bind(this));
     }
 
-    return this.current;
-  }
-
-  private fail(error) {
-    console.log("PIPE_ERROR: ", error);
-    this.reply("ERROR: " + error);
-
-    // throw new Error(error);
+    this.flush();
+    this.resolve();
   }
 }

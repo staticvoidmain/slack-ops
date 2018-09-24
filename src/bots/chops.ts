@@ -18,7 +18,8 @@ import {
 import { Pipe } from "../Pipe";
 
 function computeDuration(num: number, unit: string) {
-  switch (unit.toLowerCase()) {
+  const u = unit && unit.toLowerCase();
+  switch (u) {
     case "sec":
     case "secs":
     case "seconds":
@@ -37,6 +38,8 @@ function computeDuration(num: number, unit: string) {
     case "ms":
     case "millis":
       return num;
+
+    default: return -1;
   }
 }
 
@@ -165,7 +168,7 @@ module.exports = new Bot("chops", [{
   about: "team management functions",
   help: "create team <team-name>",
   examples: [
-    "create team Dream Team | set team.motto=Dream On!",
+    "create team AmazingTeam | set team.motto=something something",
   ],
   pattern: /^create team (.*)$/i,
   handler(m, context) {
@@ -220,7 +223,7 @@ module.exports = new Bot("chops", [{
   examples: [
     "delay 10000 ms | echo 'this won't fail until 10 seconds from now'",
   ],
-  pattern: /^delay (\d+)\s?(?:\w+)?$/i,
+  pattern: /^delay (\d+) ?(\w+)?$/i,
   handler(m, context) {
     const duration = computeDuration(+(m[1]), m[2]);
 

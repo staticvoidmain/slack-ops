@@ -13,7 +13,7 @@ db_init(function ready() {
 
   let provider: any = new SlackProvider();
 
-  if (process.argv.indexOf("--debug") > -1) {
+  if (process.argv.indexOf("--console") > -1) {
     console.log("using ConsoleProvider");
     provider = new ConsoleProvider();
   }
