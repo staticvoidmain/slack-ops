@@ -4,45 +4,40 @@ import { Bot } from "./bot-base";
 
 module.exports = new Bot("guru-bot", [{
   name: "guru-bot.blame",
+  help: "",
+  examples: ["blame @ross for being a shoddy programmer"],
   pattern: /^blame (\S+)(?:\s(.*))?$/i,
-  handler(match, context) {
+  handler: (match, context) => {
     const userName = match[1];
-    const userId = context.resolveUserId(userName);
+    const other = context.resolveUserId(userName);
 
-    if (!userId) {
+    if (!other) {
       return Promise.reject("I'm afraid I don't know this person...");
     }
 
     return new Promise(function (resolve, reject) {
-      adjustKarma(userId, -5, function (err) {
+      adjustKarma([other, context.user], -5, function (err) {
         if (err) {
-          reject(err);
-        } else {
-
-          adjustKarma(context.user, -5, function (err) {
-
-            if (err) {
-              reject(err);
-              return;
-            }
-
-            const sender = context.resolveUserName(context.user);
-            context.messages.push(`We reap what we sow, ${sender}.`);
-            context.messages.push(`${userName}'s karma has been damaged, and so has yours.`);
-            resolve();
-          });
+          return reject(err);
         }
+
+        const sender = context.resolveUserName(context.user);
+        context.messages.push(`I hope it was worth it, ${sender}.`);
+        context.messages.push(`${userName}'s karma has been damaged, and so has yours.`);
+        resolve();
       });
     });
   },
 }, {
   name: "guru-bot.praise",
+  help: "Give a compliment to a fellow user.",
+  examples: [],
   pattern: /^praise (\S+)(?:\s(.*))?$/i,
-  handler(match, context) {
+  handler: (match, context) => {
     const userName = match[1];
     const user = context.resolveUser(userName);
-    // todo: match[2] will be a reason.
 
+    // todo: match[2] will be a reason.
     if (!user) {
       return Promise.reject("I'm afraid I don't know this person...");
     }
@@ -53,18 +48,15 @@ module.exports = new Bot("guru-bot", [{
           reject(err);
         }
 
-        const sender = context.resolveUserName(context.user);
         context.messages.push(`${userName}'s karma has improved.`);
 
         if (!user.isBot) {
-          adjustKarma(context.user, +1, function (err) {
+          adjustKarma(context.user, +1, function (senderError) {
 
-            if (err) {
-              reject(err);
-              return;
+            if (senderError) {
+              return reject(senderError);
             }
 
-            context.messages.push(`What goes around comes around, ${sender}.`);
             resolve();
           });
         } else {
@@ -76,7 +68,9 @@ module.exports = new Bot("guru-bot", [{
 }, {
   name: "guru-bot.enlighten",
   pattern: /^enlighten me$/i,
-  handler(match, context) {
+  help: "",
+  examples: [],
+  handler: (match, context) => {
     return new Promise(function (resolve, reject) {
       context.messages.push(`*Dharma of Code*:
 

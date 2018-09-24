@@ -1,15 +1,25 @@
 import { getSettingValues } from "../db";
 
+export interface ICommandSpec {
+  name: string;
+  pattern: RegExp;
+  handler: (matches: any[], ctx: any) => Promise<any>;
+  help: string;
+  // optional members
+  about?: string;
+  examples?: string[];
+}
+
 export class Bot {
   private readonly name: string;
-  private readonly commands: any; // todo: IBotCommand;
+  private readonly commands: ICommandSpec[]; // todo: IBotCommand;
 
-  constructor(name, commands) {
+  constructor(name, commands: ICommandSpec[]) {
     this.name = name;
     this.commands = commands;
   }
 
-  public help(command, result, verbose) {
+  public help(command: ICommandSpec, result, verbose) {
     const messages = result.messages;
 
     messages.push("*" + command.name + "*: " + command.help);

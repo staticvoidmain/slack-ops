@@ -61,8 +61,13 @@ export function getTeamForUser(userId, done) {
 // like triggering builds, or resolving issues.
 // he hates it when you do evil things, like waste his time!
 // not sure what karma actually does yet... but whateva
-export function adjustKarma(userId, delta, done) {
-  _db.run("update User set karma = karma + ? where user_id = ?", [ delta, userId ], done);
+export function adjustKarma(users, delta, done) {
+  const update = _db.prepare("update User set karma = karma + ? where user_id = ?");
+  for (const user of users) {
+    update.run([delta, user]);
+  }
+
+  update.finalize(done);
 }
 
 export function loadUsers(users, done) {

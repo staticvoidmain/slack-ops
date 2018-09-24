@@ -41,24 +41,24 @@ export class ConsoleProvider implements ChatProvider {
 
     repl.on("line", (line) => {
 
-      if (!/^CHOPS:/.test(line)) {
-        // don't double parse chops output.
+      if (!line || /^CHOPS:/.test(line)) {
+        return repl.prompt(false);
+      }
 
-        const pipe = new Pipe("0", "general", line, this);
+      // don't double parse chops output.
+      const pipe = new Pipe("0", "general", line, this);
 
-        if (pipe.hasWork()) {
-          console.log("CHOPS: working...");
+      if (pipe.hasWork()) {
+        console.log("CHOPS: working...");
 
-          pipe.replyTo(reply);
-          pipe.exec().then(() => {
-            repl.prompt();
-          });
-        } else {
-          repl.prompt();
-        }
+        pipe.replyTo(reply);
+        pipe.exec().then(() => {
+          console.log("CHOPS: done!");
+          repl.prompt(false);
+        });
       }
     });
 
-    repl.prompt();
+    repl.prompt(false);
   }
 }

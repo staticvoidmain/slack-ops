@@ -1,8 +1,6 @@
 
 import { Bot } from "./bot-base";
 
-// todo: this guy needs db support.
-// I guess they all kinda do.
 module.exports = new Bot("task-bot", [{
   name: "task-bot.list_tasks",
   help: "list tasks [ like <pattern> ]",
@@ -11,7 +9,9 @@ module.exports = new Bot("task-bot", [{
     "list tasks like deploy",
   ],
   pattern: /^list tasks(:? like (.*))?$/i,
-  handler(m, result) {
-    result.messages.push("not implemented");
+  handler(m, ctx) {
+    ctx.messages.push("not implemented");
+
+    return Promise.resolve();
   },
 }]);

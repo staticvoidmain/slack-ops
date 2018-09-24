@@ -2,18 +2,17 @@ import { EOL } from "os";
 import { all_bots } from "./bots/bot-base";
 import { ChatProvider } from "./providers/slack";
 
+export type CommandFunc = undefined | (() => void);
+
 /**
  * matches text against all the bot patterns
  * @param ctx pipe context to pass around
  * @param text the message text to match against the command patterns.
  */
-function getBotCommand(ctx, text) {
+export function getBotCommand(ctx, text): CommandFunc {
 
-  for (let botIndex = 0; botIndex < all_bots.length; botIndex++) {
-    const bot = all_bots[botIndex];
-
-    for (let i = 0; i < bot.commands.length; i++) {
-      const command = bot.commands[i];
+  for (const bot of all_bots) {
+    for (const command of bot.commands) {
       const match = command.pattern.exec(text);
 
       if (match) {
@@ -25,7 +24,7 @@ function getBotCommand(ctx, text) {
   return undefined;
 }
 
-/**
+/*
 * ## Constructor
 * Creates a new pipe instance which can process messages.
 *
@@ -44,6 +43,7 @@ export class Pipe {
   // we start with a fulfilled promise.
   private current = Promise.resolve();
   private resolve: any = undefined;
+  private boundNext: () => Promise<void>;
 
   constructor(user: string, channel: string, line: string, provider?: ChatProvider) {
 
@@ -67,9 +67,9 @@ export class Pipe {
 
     const cmds = line.split("|");
 
-    for (let pipeStage = 0; pipeStage < cmds.length; pipeStage++) {
-      const cmd = cmds[pipeStage].trim();
-      const command = getBotCommand(cmd, this.ctx);
+    for (const part of cmds) {
+      const cmd = part.trim();
+      const command = getBotCommand(this.ctx, cmd);
 
       if (command) {
         this.commands.push(command);
@@ -79,6 +79,7 @@ export class Pipe {
     }
 
     this.work = this.commands.length;
+    this.boundNext = this.next.bind(this);
   }
 
   public replyTo(reply) {
@@ -113,12 +114,12 @@ export class Pipe {
     }
   }
 
-  private next(arg) {
+  private next() {
     const command = this.commands.shift();
 
     if (command) {
-      this.current = command(arg)
-        .then(this.next);
+      this.current = command()
+        .then(this.boundNext);
 
       // what was the defer stuff?
     } else {
@@ -131,10 +132,11 @@ export class Pipe {
 
     return this.current;
   }
+
   private fail(error) {
-    console.log("PIPE_ERROR: " + JSON.stringify(error));
+    console.log("PIPE_ERROR: ", error);
     this.reply("ERROR: " + error);
 
-    throw new Error(error);
+    // throw new Error(error);
   }
 }

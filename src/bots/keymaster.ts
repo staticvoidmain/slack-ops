@@ -14,9 +14,12 @@ function ensurePrivate(context) {
 // these keys should never be leaked to the console.
 module.exports = new Bot("keymaster", [{
   name: "keymaster.auth",
-  pattern: /^auth (\w+) (\w+) (\w+)$/i,
-  handler(match, context) {
-
+  examples: [
+    "auth service user",
+  ],
+  help: "autenticate with a provider",
+  pattern: /^auth (\w+)$/i,
+  handler: (match, context) => {
     return new Promise((resolve, reject) => {
       if (ensurePrivate(context)) {
         context.messages.push("Not implemented anyway.");
