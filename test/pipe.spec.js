@@ -3,10 +3,6 @@ import { expect } from "chai";
 import { Pipe, getBotCommand } from "../src/pipe";
 import { load } from "../src/bots/bot-base";
 
-
-// slightly sinful, but we will import chops so we have some of the core commands
-// available to the pipe.
-// we could mock them, but whatever.
 load("chops");
 
 describe("#getBotCommand", function () {
@@ -29,7 +25,7 @@ describe("#exec", function () {
   });
 
   it("doesn't call reply if there is no output", function (done) {
-    const pipe = new Pipe("", "a", "delay 1000");
+    const pipe = new Pipe("", "a", "delay 1000 ms");
 
     pipe.replyTo(function () {
       expect(true).to.equal(true);
@@ -39,7 +35,7 @@ describe("#exec", function () {
   });
 
   it("processes chained commands", function (done) {
-    const pipe = new Pipe("", "", "delay 1000 | help");
+    const pipe = new Pipe("", "", "delay 1000 ms | help");
 
     pipe.replyTo(function reply(text) {
       expect(text).not.to.equal(undefined);

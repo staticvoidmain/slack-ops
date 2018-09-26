@@ -11,8 +11,8 @@ export interface ICommandSpec {
 }
 
 export class Bot {
-  private readonly name: string;
-  private readonly commands: ICommandSpec[]; // todo: IBotCommand;
+  public readonly name: string;
+  public readonly commands: ICommandSpec[];
 
   constructor(name, commands: ICommandSpec[]) {
     this.name = name;

@@ -45,8 +45,8 @@ export class SlackProvider implements ChatProvider {
 
     const keys = Object.keys(this.users);
 
-    for (let i = 0; i < keys.length; i++) {
-      const user = this.users[keys[i]];
+    for (const key of keys) {
+      const user = this.users[key];
       if (user.name === name) {
         return user.id;
       }
@@ -69,8 +69,7 @@ export class SlackProvider implements ChatProvider {
     });
 
     this.slack.on("start", () => {
-      for (let i = 0; i < this.slack.users.length; i++) {
-        const user = this.slack.users[i];
+      for (const user of this.slack.users) {
 
         // is deleted eh?
         if (!user.deleted) {
@@ -83,9 +82,7 @@ export class SlackProvider implements ChatProvider {
         }
       }
 
-      for (let i = 0; i < this.slack.channels.length; i++) {
-        const channel = this.slack.channels[i];
-
+      for (const channel of this.slack.channels) {
         this.channels[channel.id] = {
           id: channel.id,
           name: channel.name,
@@ -115,9 +112,9 @@ export class SlackProvider implements ChatProvider {
       return;
     }
 
-    let channel = this.channels[data.channel];
     const user = this.users[data.user];
 
+    let channel = this.channels[data.channel];
     let postMethod = "postMessageToChannel";
 
     if (!channel) {
@@ -164,7 +161,7 @@ export class SlackProvider implements ChatProvider {
 
         pipe.exec().then(function() {
           // todo: adjust karma by the amount of work you had chops do
-
+          adjustKarma([], pipe.getWorkScore(), () => { /*no done callback*/ });
         });
       } else {
         // TODO: for non-commands pipe the text to the karma adjusting code
